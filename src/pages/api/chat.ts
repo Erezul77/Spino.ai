@@ -26,7 +26,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const reply = completion.choices[0].message.content;
-    return res.status(200).json({ reply });
+    res.status(200).json({ reply: completion.choices[0].message.content });
+    console.log("Reply sent:", completion.choices[0].message.content);
   } catch (error) {
     console.error("OpenAI API Error:", error);
     return res.status(500).json({ error: "Failed to generate response" });
