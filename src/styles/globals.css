@@ -6,7 +6,6 @@ body {
   @apply bg-gray-100 text-gray-800;
 }
 
-/* Safe fallback styles for chat messages */
 .user-msg {
   background-color: #f0f0f0;
   color: #333;
