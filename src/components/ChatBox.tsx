@@ -12,42 +12,34 @@ export function ChatBox() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
-    setInput("");
+  const userMessage = { role: "user", content: input };
+  setMessages((prev) => [...prev, userMessage]);
+  setInput("");
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
-      });
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: [...messages, userMessage] }), // ← make sure we send full array
+    });
 
-      const data = await response.json();
-      console.log("🟢 Got from API:", data);
+    const data = await response.json();
+    console.log("🟢 API said:", data);
 
-      if (data.reply) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.reply },
-        ]);
-      } else {
-        console.warn("⚠️ No reply in response:", data);
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "SpiñO could not generate a reply." },
-        ]);
-      }
-    } catch (error) {
-      console.error("❌ Error sending message:", error);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "SpiñO could not generate a reply." },
-      ]);
+    if (data.reply) {
+      const assistantMessage = { role: "assistant", content: data.reply };
+      setMessages((prev) => [...prev, assistantMessage]); // ← use updater pattern again
+    } else {
+      setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO gave no reply." }]);
     }
-  };
+  } catch (error) {
+    console.error("❌", error);
+    setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO failed to reply." }]);
+  }
+};
+
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
