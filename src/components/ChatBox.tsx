@@ -1,82 +1,89 @@
-import React, { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import ChatMessage from "./ChatMessage";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export default function ChatBox() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
+export function ChatBox() {
+  const [messages, setMessages] = useState<{ role: string; content: string }[]>([
     {
       role: "assistant",
-      content: "Welcome to your 1:1 session with SpiñO. What's troubling you?",
+      content: "Welcome Love, How do you feel today?",
     },
   ]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSubmit = async () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    const updatedMessages = [...messages, { role: "user" as const, content: input }];
-    setMessages(updatedMessages);
+    const newMessages = [...messages, { role: "user", content: input }];
+    setMessages(newMessages);
     setInput("");
-    setError(null);
-    setLoading(true);
 
     try {
-      const res = await fetch("/api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({ messages: newMessages }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
+      console.log("🟢 Got from API:", data);
 
-      if (res.ok && typeof data.result === "string") {
-        const assistantMessage = { role: "assistant" as const, content: data.result };
-        setMessages([...updatedMessages, assistantMessage]);
+      if (data.reply) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.reply },
+        ]);
       } else {
-        setError("SpiñO could not generate a reply.");
+        console.warn("⚠️ No reply in response:", data);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "SpiñO could not generate a reply." },
+        ]);
       }
-    } catch (err) {
-      console.error(err);
-      setError("An error occurred while communicating with SpiñO.");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("❌ Error sending message:", error);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "SpiñO could not generate a reply." },
+      ]);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      handleSend();
     }
   };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
-    <div>
-      <h1>
-        <strong>SpiñO AI</strong>
-      </h1>
-      {messages.map((msg, index) => (
-        <p key={index}>
-          <strong>{msg.role === "user" ? "You" : "SpiñO"}:</strong> {msg.content}
-        </p>
-      ))}
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        rows={3}
-        cols={80}
-        style={{ display: "block", marginTop: "1em" }}
-      />
-      <button onClick={handleSubmit} disabled={loading || !input.trim()}>
-        Send
-      </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="w-full max-w-3xl mx-auto px-4">
+      <div className="space-y-4">
+        {messages.map((msg, index) => (
+          <ChatMessage key={index} role={msg.role} content={msg.content} />
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+      <div className="mt-4 flex flex-col sm:flex-row items-end gap-2">
+        <textarea
+          rows={3}
+          className="flex-1 border p-3 rounded-md shadow resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="Type your reflection and press Enter to send..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          onClick={handleSend}
+          className="bg-purple-600 text-white px-4 py-2 rounded-md shadow hover:bg-purple-700 transition"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }
