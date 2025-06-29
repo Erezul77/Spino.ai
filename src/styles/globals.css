@@ -1,8 +1,33 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   @apply bg-gray-100 text-gray-800;
+}
+
+/* Safe fallback styles for chat messages */
+.user-msg {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: right;
+  max-width: 75%;
+  margin-left: auto;
+}
+
+.bot-msg {
+  background-color: #e6e6ff;
+  color: #000;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: left;
+  max-width: 75%;
+  margin-right: auto;
+}
+
+.msg-content {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
