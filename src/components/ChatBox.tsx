@@ -31,13 +31,24 @@ export function ChatBox() {
 
       if (data.reply) {
         const assistantMessage = { role: "assistant", content: data.reply };
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages((prev) => {
+          const updated = [...prev, assistantMessage];
+          console.log("🧠 Final message state:", updated);
+          return updated;
+        });
       } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO gave no reply." }]);
+        setMessages((prev) => {
+          const fail = [...prev, { role: "assistant", content: "SpiñO gave no reply." }];
+          console.log("🧠 Fallback message state:", fail);
+          return fail;
+        });
       }
     } catch (error) {
       console.error("❌", error);
-      setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO failed to reply." }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "SpiñO failed to reply." },
+      ]);
     }
   };
 
