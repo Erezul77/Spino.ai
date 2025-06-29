@@ -12,34 +12,34 @@ export function ChatBox() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const handleSend = async () => {
-  if (!input.trim()) return;
+    if (!input.trim()) return;
 
-  const userMessage = { role: "user", content: input };
-  setMessages((prev) => [...prev, userMessage]);
-  setInput("");
+    const userMessage = { role: "user", content: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput("");
 
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: [...messages, userMessage] }), // ← make sure we send full array
-    });
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
 
-    const data = await response.json();
-    console.log("🟢 API said:", data);
+      const data = await response.json();
+      console.log("🟢 API said:", data);
 
-    if (data.reply) {
-      const assistantMessage = { role: "assistant", content: data.reply };
-      setMessages((prev) => [...prev, assistantMessage]); // ← use updater pattern again
-    } else {
-      setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO gave no reply." }]);
+      if (data.reply) {
+        const assistantMessage = { role: "assistant", content: data.reply };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO gave no reply." }]);
+      }
+    } catch (error) {
+      console.error("❌", error);
+      setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO failed to reply." }]);
     }
-  } catch (error) {
-    console.error("❌", error);
-    setMessages((prev) => [...prev, { role: "assistant", content: "SpiñO failed to reply." }]);
-  }
-};
-
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
