@@ -14,8 +14,7 @@ export function ChatBox() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMessage = { role: "user", content: input };
-    const newMessages = [...messages, userMessage];
+    const newMessages = [...messages, { role: "user", content: input }];
     setMessages(newMessages);
     setInput("");
 
@@ -27,27 +26,24 @@ export function ChatBox() {
       });
 
       const data = await response.json();
-      console.log("🟢 API said:", data);
+      const reply = data?.message?.content;
 
-      if (data.reply) {
-        const assistantMessage = { role: "assistant", content: data.reply };
-        setMessages((prev) => {
-          const updated = [...prev, assistantMessage];
-          console.log("🧠 Final message state:", updated);
-          return updated;
-        });
+      if (!reply) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "SpiñO could not generate a reply." },
+        ]);
       } else {
-        setMessages((prev) => {
-          const fail = [...prev, { role: "assistant", content: "SpiñO gave no reply." }];
-          console.log("🧠 Fallback message state:", fail);
-          return fail;
-        });
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: reply },
+        ]);
       }
     } catch (error) {
-      console.error("❌", error);
+      console.error("Error sending message:", error);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "SpiñO failed to reply." },
+        { role: "assistant", content: "SpiñO could not generate a reply." },
       ]);
     }
   };
@@ -90,3 +86,4 @@ export function ChatBox() {
     </div>
   );
 }
+

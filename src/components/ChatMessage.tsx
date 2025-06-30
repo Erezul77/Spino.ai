@@ -1,7 +1,7 @@
-export default function ChatMessage({ role, content }: { role: string; content: string }) {
+export default function ChatMessage({ message }: any) {
   return (
-    <div className={role === "user" ? "user-msg" : "bot-msg"}>
-      <div className="msg-content">{content}</div>
+    <div className={message.role === "user" ? "user-msg" : "bot-msg"}>
+      <div className="msg-content">{message.content}</div>
     </div>
   );
 }
